@@ -51,6 +51,30 @@
             print "エラー：" .$Exception->getMessage();
           }
         }
+
+        // 更新処理
+        if(isset($_POST['action']) && $_POST['action'] == 'update'){
+          // セッション変数によりidを受け取る
+          $id = $_SESSION['id'];
+
+          try{
+            $pdo->beginTransaction();
+            $sql = "UPDATE member SET last_name = :last_name, first_name = :first_name WHERE id = :id";
+            $stmh = $pdo->prepare($sql);
+            $stmh->bindValue(':last_name',$_POST['last_name'], PDO::PARAM_STR);
+            $stmh->bindValue(':first_name',$_POST['first_name'],PDO::PARAM_STR);
+            $stmh->bindValue(':id',$id,PDO::PARAM_INT);
+            $stmh->execute();
+            $pdo->commit();
+            print "データを" .$stmh->rowCount() ."件、更新しました<br>";
+          } catch(PDOException $Exception){
+            $pdo->rollBack();
+            print "エラー：" .$Exception->getMessage();
+          }
+
+          // 使用したセッション変数を削除する
+          unset($_SESSION['id']);
+        }
       ?>
   </body>
 </html>
