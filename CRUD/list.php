@@ -75,6 +75,52 @@
           // 使用したセッション変数を削除する
           unset($_SESSION['id']);
         }
+
+        // 検索および現在の全データを表示する
+        try {
+          if(isset($_POST['search_key']) && $_POST['search_key'] !=""){
+            $search_key = '%' .$_POST['search_key'] .'%';
+            $sql = "SELECT * FROM member WHERE last_name like :first_name OR first_name like :first_name";
+            $stmh = $pdo->prepare($sql);
+            $stmh->bindValue(':last_name',$search_key,PDO::PARAM_STR);
+            $stmh->bindValue(':first_name'.$search_key,PDO::PARAM_STR);
+            $stmh->execute();
+          } else {
+            $sql = "SELECT * FROM member";
+            $stmh = $pdo->query($sql);
+          }
+          $count = $stmh->rowCount();
+          print "検索結果は" .$count ."件です<br>";
+
+        } catch(PDOException $Exception) {
+            print "エラー：" .$Exception->getMessage();
+        }
+
+        if($count < 1){
+          print "検索結果がありません<br>";
+        }else{
+      ?>
+      
+      <table border="1">
+        <tbody>
+          <tr><th>番号</th><th>氏</th><th>名</th><th>年齢</th><th>&nbsp;</th><th>&nbsp;</th></tr>
+          <?php
+            while ($row = $stmh->fetch(PDO::FETCH_ASSOC)){
+          ?>
+          <tr>
+            <td><?=htmlspecialchars($row['id'],ENT_QUOTES)?></td>
+            <td><?=htmlspecialchars($row['last_name'],ENT_QUOTES)?></td>
+            <td><?=htmlspecialchars($row['first_name'],ENT_QUOTES)?></td>
+            <td><a href=updateform.php?id=<?=htmlspecialchars($row['id']),ENT_QUOTES?>>更新</a></td>
+            <td><a href=list.php?action=delete&id=<?=htmlspecialchars($row['id']),ENT_QUOTES?>>削除</a></td>
+          </tr>
+          <?php
+            }
+          ?>
+        </tbody>
+      </table>
+      <?php
+        }
       ?>
   </body>
 </html>
