@@ -17,7 +17,7 @@
         名前：<input type="text" name="search_key"><input type="submit" value="検索する">
       </form>
       <?php
-        require_once(MYDB.php);
+        require_once("MYDB.php");
         $pdo = db_connect();
         // 削除処理
         if(isset($_GET['action']) && $_GET['action'] == 'delete' && $_GET['id'] > 0){
@@ -26,7 +26,7 @@
             $id = $_GET['id'];
             $sql = "DELETE FROM member WHERE id = :id";
             $stmh = $pdo->prepare($sql);
-            $stmh->bindValue(':id',$id,PDO_PARAM_INT);
+            $stmh->bindValue(':id',$id,PDO::PARAM_INT);
             $stmh->execute();
             $pdo->commit();
             print "データを" .$stmh->rowCount() ."件、削除しました<br>";
@@ -36,7 +36,7 @@
           }
         }
         // 挿入処理
-        if(isset($_GET['action']) && $_GET['action'] == 'insert'){
+        if(isset($_POST['action']) && $_POST['action'] == 'insert'){
           try{
             $pdo->beginTransaction();
             $sql = "INSERT INTO member (last_name, first_name) VALUES (:last_name, :first_name)";
@@ -80,10 +80,10 @@
         try {
           if(isset($_POST['search_key']) && $_POST['search_key'] !=""){
             $search_key = '%' .$_POST['search_key'] .'%';
-            $sql = "SELECT * FROM member WHERE last_name like :first_name OR first_name like :first_name";
+            $sql = "SELECT * FROM member WHERE last_name like :last_name OR first_name like :first_name";
             $stmh = $pdo->prepare($sql);
             $stmh->bindValue(':last_name',$search_key,PDO::PARAM_STR);
-            $stmh->bindValue(':first_name'.$search_key,PDO::PARAM_STR);
+            $stmh->bindValue(':first_name',$search_key,PDO::PARAM_STR);
             $stmh->execute();
           } else {
             $sql = "SELECT * FROM member";
@@ -103,7 +103,7 @@
       
       <table border="1">
         <tbody>
-          <tr><th>番号</th><th>氏</th><th>名</th><th>年齢</th><th>&nbsp;</th><th>&nbsp;</th></tr>
+          <tr><th>番号</th><th>氏</th><th>名</th><th>&nbsp;</th><th>&nbsp;</th></tr>
           <?php
             while ($row = $stmh->fetch(PDO::FETCH_ASSOC)){
           ?>
@@ -112,7 +112,8 @@
             <td><?=htmlspecialchars($row['last_name'],ENT_QUOTES)?></td>
             <td><?=htmlspecialchars($row['first_name'],ENT_QUOTES)?></td>
             <td><a href=updateform.php?id=<?=htmlspecialchars($row['id']),ENT_QUOTES?>>更新</a></td>
-            <td><a href=list.php?action=delete&id=<?=htmlspecialchars($row['id']),ENT_QUOTES?>>削除</a></td>
+            <td><a href=list.php?action=delete&id=<?=htmlspecialchars($row['id'],ENT_QUOTES)?>>削除</a></td>
+
           </tr>
           <?php
             }
